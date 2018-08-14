@@ -11,16 +11,27 @@ class App extends Component {
 
     this.state = {
       result: null,
+      current: 0
     };
   }
 
   componentDidMount() {
     this.onClickSearch2();
+    setInterval(this.onClickSearch2.bind(this), 60 * 1000);
+
+    /*
+    setInterval(function() {
+      //this.onClickSearch2();
+      var date = new Date(Date.now()).toLocaleString();
+      console.log(date);
+    }, 10 * 1000);
+    */
   }
 
   onClickSearch2() {
 
     var valorDisponivel = 100;
+    var telegramMyChatId = '176061450';
     var telegramToken = 'bot657599997:AAEzL8bf5NWEr67Yh7aTeNi8W-vbImTEBtE';
 
 
@@ -36,22 +47,40 @@ class App extends Component {
           "unit_price": response.data.last
         };
 
+        console.log('ticker', response.data);
+
         var last = response.data.data.last;
 
-        axios.get('https://api.telegram.org/'+telegramToken+'/getUpdates').then(response2 => {
-          
-        })
-        .catch(exception => {
-        });
+        if (this.state.current <= 0)
+          this.setState({ current: last });
 
-        axios.post('https://api.telegram.org/'+ telegramToken +'/sendMessage?chat_id=176061450&text='+ last, order)
-          .then(response3 => {
-            this.setState({ result: JSON.stringify(last) });
+
+        var date = new Date(Date.now()).toLocaleString();
+        var variation = (1-(this.state.current/last))*100;
+
+        var text = 'Date: '+ date + ' | Current: R$'+ this.state.current + ' | Last: R$'+ last + ' | Var: '+ variation +'%'; 
+
+        this.setState({ current: last });
+
+        console.log('text', text);
+
+        /*
+        axios.get('https://api.telegram.org/'+telegramToken+'/getUpdates').then(response2 => {
+            console.log('updates', response2.data);
           })
           .catch(exception => {
           });
-        
+        */
 
+        
+        axios.post('https://api.telegram.org/'+ telegramToken +'/sendMessage?chat_id='+ telegramMyChatId +'&text='+ text, order)
+          .then(response3 => {
+            console.log('sendMessage');
+          })
+          .catch(exception => {
+            console.log('sendMessage - exception', exception);
+          });
+        
 
         /*
         axios.post('https://api.bitcointrade.com.br/v1/market/create_order', order)
